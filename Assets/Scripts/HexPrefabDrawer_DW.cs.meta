@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: ad6b7ffb724d24cdab75275c8e135412
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - hexOrigin: {instanceID: 0}
+  - hexContainer: {instanceID: 0}
+  - hexChild: {instanceID: 0}
+  - landTile: {instanceID: 0}
+  - ObstacleTile: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

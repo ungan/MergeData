@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class game_move_HI : MonoBehaviour
+public class GameMove_HI : MonoBehaviour
 {
     public int jump_count;
     public GameObject it;
     public GameObject player;
-
+    public TouchPosition_HI touch;
+    //public GameObject touch;
 
     public float fast;
     public float speed;
@@ -24,7 +25,9 @@ public class game_move_HI : MonoBehaviour
     bool use_item= false;
     bool r_sight = true;
     bool tree_climbing = false;
+    bool isRope = false;
 
+    FixedJoint2D fixjoint;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,7 +35,9 @@ public class game_move_HI : MonoBehaviour
         //Rigidbody2D ridgid = GetComponent<Rigidbody2D>();
 
         // Add a force to the Rigidbody.
-
+        fixjoint = GetComponent<FixedJoint2D>();
+        //touch = new touch_position();
+        
     }
 
 
@@ -40,6 +45,9 @@ public class game_move_HI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+       
+       
+        Debug.Log("move m_code" + touch.m_code);
         item_basetime += Time.deltaTime;
         a = item_basetime - item_starttime;
         //Debug.Log("item_holdingtime" + item_holdingtime);
@@ -50,47 +58,36 @@ public class game_move_HI : MonoBehaviour
         {
             timecheck();
         }
-        if (Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.LeftArrow) || (touch.m_code == 1))
         {
             Debug.Log("A");
             ridgid.AddForce(Vector3.left * speed * Time.deltaTime);
             r_sight = true;
             //player.transform.localScale = Vector3.left;
         }
-        if (Input.GetKey(KeyCode.D)||Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.D)||Input.GetKey(KeyCode.RightArrow) || (touch.m_code == 0))
         {
             Debug.Log("D");
             ridgid.AddForce(Vector3.right * speed * Time.deltaTime);
             r_sight = false;
             //player.transform.localScale = Vector3.right;
         }
-        if (Input.GetKeyDown(KeyCode.Space) && jump_count > 0)
+        if (Input.GetKeyDown(KeyCode.Space) && jump_count > 0 || jump_count >0 && (touch.j_code == 0))
         {
             jump_count--;
             //ridgid.AddForce(Vector3.up * jump_power);
             ridgid.velocity = new Vector2(ridgid.velocity.x,jump_power);
         }
-        /*
-        if (Input.GetKeyDown(KeyCode.Space) && jump_count > 0 && tree_climbing)
-        {
-            if(r_sight)
-            {
-                jump_count--;
-                ridgid.velocity = Vector2.one * jump_power;
-                Debug.Log("오른쪽 위로 점프");
-            }
-            else if(!r_sight)
-            {
-                jump_count--;
-                ridgid.velocity = Vector2.left * jump_power;
-                ridgid.velocity = Vector2.up * jump_power;
-                Debug.Log("왼쪽 위로 점프");
-            }
-        }
-        */
+        
         if (Input.GetKey(KeyCode.G))
         {
             ridgid.velocity = new Vector2(ridgid.velocity.x,speed_g);
+        }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            fixjoint.connectedBody = null;
+            fixjoint.enabled = false;
         }
     }
 
@@ -120,6 +117,14 @@ public class game_move_HI : MonoBehaviour
             speedup(fast);
             it.SetActive(false);
             //speed = speed + fast;
+        }
+        else if(collision.gameObject.tag == "Rope" && !isRope)
+        {
+            Rigidbody2D rig = collision.gameObject.GetComponent<Rigidbody2D>();
+            fixjoint.enabled = true;
+            fixjoint.connectedBody = rig;
+            isRope = true;
+
         }
     }
 
@@ -157,3 +162,22 @@ public class game_move_HI : MonoBehaviour
         }
     }
 }
+
+/*
+        if (Input.GetKeyDown(KeyCode.Space) && jump_count > 0 && tree_climbing)
+        {
+            if(r_sight)
+            {
+                jump_count--;
+                ridgid.velocity = Vector2.one * jump_power;
+                Debug.Log("오른쪽 위로 점프");
+            }
+            else if(!r_sight)
+            {
+                jump_count--;
+                ridgid.velocity = Vector2.left * jump_power;
+                ridgid.velocity = Vector2.up * jump_power;
+                Debug.Log("왼쪽 위로 점프");
+            }
+        }
+        */

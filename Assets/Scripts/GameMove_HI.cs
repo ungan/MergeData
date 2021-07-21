@@ -82,12 +82,14 @@ public class GameMove_HI : MonoBehaviour
                 short_touch = false;
             }
         }
-        else if (rsight && !stop)     // 우측이동 
+        else if (rsight && !stop && isglidng == 0)     // 우측이동 
         {
+            Debug.Log("우측이동");
             player_rmove();
         }
-        else if (!rsight && !stop)   // 좌측이동
+        else if (!rsight && !stop && isglidng == 0)   // 좌측이동
         {
+            Debug.Log("좌측이동");
             player_lmove();
         }
         if (climbing_up && !stop)
@@ -105,16 +107,16 @@ public class GameMove_HI : MonoBehaviour
         }
         switch (isglidng)
         {
-            case 0:
+            case 0:                                     // 글라이딩 해제 상태
                 ridgid.gravityScale = 1;
                 break;
             case 1:
-                gliding_direction();
+                gliding_direction();                    // 글라이딩 1
                 break;
-            case 2:
+            case 2:                                     // 글라이딩 1 이후 case 2상태가됨
                 break;
             case 3:
-                gliding2();
+                gliding2();                             // 글라이딩 2 case 2 에서 case 3이가능
                 break;
         }
 
@@ -134,7 +136,7 @@ public class GameMove_HI : MonoBehaviour
             fixjoint.enabled = true;
             fixjoint.connectedBody = rig;
             isRope = true;
-
+            stop = true;
         }
     }
 
@@ -229,9 +231,9 @@ public class GameMove_HI : MonoBehaviour
                 player_jump();
                 // 점프함수를 호출해줄것
             }
-            else if (!swipe && short_touch && isglidng == 3)     // 추가적인 비행
+            else if (!swipe && short_touch && isglidng == 2)     // 추가적인 비행
             {
-                isglidng = 2;
+                isglidng = 3;
                 ridgid.gravityScale = 1;
                 ridgid.velocity = new Vector2(ridgid.velocity.x, gliding2_power);
                 //ridgid.AddForce(Vector3.up * gliding2_power);
@@ -241,11 +243,12 @@ public class GameMove_HI : MonoBehaviour
             {
                 touch_direction();
             }
-            else if (swipe && isjump && isglidng != 2 && !isRope)        // swipe 이면서 jump상태일경우 이미 터치로다음동작으로 넘어간경우 다시넘어올수없음
+            else if (swipe && isjump && isglidng != 2 && !isRope && isglidng !=3)        // swipe 이면서 jump상태일경우 이미 터치로다음동작으로 넘어간경우 다시넘어올수없음
             {
                 Debug.Log("점프중 스와이프");
                 isglidng = 1;
             }
+
             else if (isRope && swipe)
             {
                 Debug.Log("rope위에서 점프");
@@ -309,22 +312,23 @@ public class GameMove_HI : MonoBehaviour
         if (tx > ty)
         {
             //Debug.Log("tx>ty"+tx/ty + "radian" + radian);
+            //Debug.Log("touch width" + width);
             if (width)
             {
                 if ((ty / tx) < radian)
                 {
                     //Debug.Log("좌측으로 이동");
                     //Debug.Log("좌측 rsight : " + rsight + "stop : " + stop);
-                    if (!rsight && !stop)      // 만약 이전에 오른쪽이동이 활성화된상태이며 동시에 stop상태가 아닌 true 상태라면 질주활성화
+                    if (rsight && !stop)      // 만약 이전에 오른쪽이동이 활성화된상태이며 동시에 stop상태가 아닌 true 상태라면 질주활성화
                     {
-                        //Debug.Log("좌측으로 질주");
+                        //Debug.Log("우측으로 질주");
                         running();          // 달리는 함수 speed = running_speed; speed 값 교체
                     }
                     else// 우측 이동 함수 부를것
                     {
-                        //Debug.Log("좌측으로 걷기");
+                        //Debug.Log("우측으로 걷기");
                         walking();          // 걷는 함수 speed값이 걷는 값으로 설정
-                        rsight = false;      // 좌측방향이동
+                        rsight = true;      // 좌측방향이동
                         stop = false;       // stop인경우 stop 해제
 
                     }
@@ -336,16 +340,16 @@ public class GameMove_HI : MonoBehaviour
                 {
                     //Debug.Log("우측으로 이동");
                     //Debug.Log("우측 rsight : " + rsight + "stop : " + stop);
-                    if (rsight && !stop)
+                    if (!rsight && !stop)
                     {
-                        //Debug.Log("우측으로 질주");
+                        //Debug.Log("좌측으로 질주");
                         running();          // 달리는 함수 speed = running_speed; speed 값 교체
                     }
                     else    // 좌측 이동 함수 부를것
                     {
-                        //Debug.Log("우측으로 걷기");
+                        //Debug.Log("좌측으로 걷기");
                         walking();          // 걷는 함수 speed값이 걷는 값으로 설정
-                        rsight = true;     // 우측 방향이동
+                        rsight = false;     // 우측 방향이동
                         stop = false;       // stop인경우 stop 해제
                     }
 
@@ -396,20 +400,6 @@ public class GameMove_HI : MonoBehaviour
             {
                 if ((ty / tx) < radian)
                 {
-                    Debug.Log("왼쪽으로 글라이딩");
-                    if (ridgid.velocity.x > 0)
-                    {
-                        ridgid.velocity = new Vector2(ridgid.velocity.x * -1, 0);
-                    }
-                    ridgid.velocity = new Vector2(ridgid.velocity.x, 0);
-                    ridgid.gravityScale = 0;
-                    isglidng = 3;
-                }
-            }
-            if (!width)
-            {
-                if ((ty / tx) < radian)
-                {
                     Debug.Log("오른쪽으로 글라이딩");
                     if (ridgid.velocity.x < 0)
                     {
@@ -417,7 +407,23 @@ public class GameMove_HI : MonoBehaviour
                     }
                     ridgid.velocity = new Vector2(ridgid.velocity.x, 0);
                     ridgid.gravityScale = 0;
-                    isglidng = 3;
+                    isglidng = 2;
+                    stop = true;
+                }
+            }
+            if (!width)
+            {
+                if ((ty / tx) < radian)
+                {
+                    Debug.Log("왼쪽으로 글라이딩");
+                    if (ridgid.velocity.x > 0)
+                    {
+                        ridgid.velocity = new Vector2(ridgid.velocity.x * -1, 0);
+                    }
+                    ridgid.velocity = new Vector2(ridgid.velocity.x, 0);
+                    ridgid.gravityScale = 0;
+                    isglidng = 2;
+                    stop = true;
                 }
             }
         }
@@ -446,42 +452,45 @@ public class GameMove_HI : MonoBehaviour
         {
             height = true;
         }
+        //Debug.Log("width : " + width + "height : " + height + "tx : " + tx + "ty : " + ty);
+
         //Debug.Log("tx : "+ tx + "ty : " +ty );
-        if (tx > ty)
+        if (tx > ty)                    // 가로에대한 입력이 들어왔다/
         {
+
             //Debug.Log("tx>ty"+tx/ty + "radian" + radian);
             if (width)      // 오른쪽 <
             {
                 if (height)                 // 오른쪽 가로부분 1사분면
                 {
-                    Debug.Log("오른쪽 가로부분 1사분면");
+                    Debug.Log("1");
                     t_cos = tx / math.sqrt(tx * tx + ty * ty);
                     t_sin = ty / math.sqrt(tx * tx + ty * ty);
                     ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
                 }
                 else if (!height)           // 오른쪽 가로부분 4사분면 
                 {
-                    Debug.Log("오른쪽 가로부분 4사분면");
-                    t_cos = tx / math.sqrt(tx * tx + ty * ty);
-                    t_sin = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope * -1);
+                    Debug.Log("2");
+                    //t_cos = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_sin = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos  * jump_power_rope * -1);
                 }
             }
             if (!width)     // 왼쪽 >
             {
                 if (height)
                 {
-                    Debug.Log("왼쪽 가로부분 2사분면");
-                    t_cos = tx / math.sqrt(tx * tx + ty * ty);
-                    t_sin = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * -1 * jump_power_rope, t_cos * jump_power_rope);
+                    Debug.Log("6");
+                    //t_cos = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_sin = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * -1 * jump_power_rope, t_cos * jump_power_rope);
                 }
                 else if (!height)
                 {
-                    Debug.Log("왼쪽 가로부분 3사분면");
-                    t_cos = tx / math.sqrt(tx * tx + ty * ty);
-                    t_sin = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * -1 * jump_power_rope, t_cos * -1 * jump_power_rope);
+                    Debug.Log("5");
+                    //t_cos = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_sin = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * -1 * jump_power_rope, t_cos * -1 * jump_power_rope);
                 }
             }
         }
@@ -493,17 +502,17 @@ public class GameMove_HI : MonoBehaviour
             {
                 if (width)       // 위쪽의 1사분면
                 {
-                    Debug.Log("오른쪽 세로부분 1사분면");
+                    Debug.Log("8");
                     t_sin = tx / math.sqrt(tx * tx + ty * ty);
                     t_cos = ty / math.sqrt(tx * tx + ty * ty);
                     ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
                 }
                 else if (!width)     // 위쪽의 2사분면
                 {
-                    Debug.Log("왼쪽 세로부분 2사분면");
-                    t_sin = tx / math.sqrt(tx * tx + ty * ty);
-                    t_cos = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
+                    Debug.Log("7");
+                    //t_sin = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_cos = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
                 }
 
             }
@@ -511,17 +520,17 @@ public class GameMove_HI : MonoBehaviour
             {
                 if (width)       // 아래쪽의 4사사분면
                 {
-                    Debug.Log("오른쪽 세로부분 1사분면");
-                    t_sin = tx / math.sqrt(tx * tx + ty * ty);
-                    t_cos = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
+                    Debug.Log("3");
+                    //t_sin = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_cos = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
                 }
-                else if (!width)     // 아래쪽의 1사분면
+                else if (!width)     // 아래쪽의 3사분면
                 {
-                    Debug.Log("왼쪽 가로부분 4사분면");
-                    t_sin = tx / math.sqrt(tx * tx + ty * ty);
-                    t_cos = ty / math.sqrt(tx * tx + ty * ty);
-                    ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
+                    Debug.Log("4");
+                    //t_sin = tx / math.sqrt(tx * tx + ty * ty);
+                    //t_cos = ty / math.sqrt(tx * tx + ty * ty);
+                    //ridgid.velocity = new Vector2(t_sin * jump_power_rope, t_cos * jump_power_rope);
                 }
             }
         }
@@ -581,7 +590,7 @@ public class GameMove_HI : MonoBehaviour
     }
     void mouse_position()
     {
-        tx = mouse_down.transform.position.x - mouse_up.transform.position.x;       // mouse_down 위치값 저장
+        tx = mouse_up.transform.position.x - mouse_down.transform.position.x;       // mouse_down 위치값 저장
         ty = mouse_up.transform.position.y - mouse_down.transform.position.y;       // mouse_up 위치값 저장
     }
 
